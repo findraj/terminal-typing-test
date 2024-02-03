@@ -19,7 +19,13 @@ def start_screen(stdscr):
     stdscr.getkey()
 
 def test_screen(stdscr):
-    testText = "hello world"
+    height, width = stdscr.getmaxyx()
+
+    try:
+        file = open("test-texts.txt", "r")
+        testText = file.read(width // 2)
+    except:
+        testText = "hello world"
     answer = []
 
     x, y = middle(stdscr, testText)
@@ -29,12 +35,15 @@ def test_screen(stdscr):
     stdscr.move(y, x)
     stdscr.refresh()
 
+    score = 0
+    isCorrect = False
     charCounter = 0
     while True:
         if (charCounter == len(testText)):
             break
 
         key = stdscr.getkey()
+        stdscr.addstr(0, 0, str(score))
 
         if (key == "KEY_BACKSPACE"):
             if (charCounter == 0):
@@ -44,18 +53,23 @@ def test_screen(stdscr):
             stdscr.move(y, x + charCounter - 1)
             answer.pop()
 
+            if (testText[charCounter - 1] == " "):
+                score -= 1
+
             charCounter -= 1
         else:
+            if ((key == " ") & isCorrect):
+                score += 1
+
             answer.append(key)
 
             for i in range(len(answer)):
                 if (answer[i] == testText[i]):
                     stdscr.addstr(y, x + i, answer[i], curses.color_pair(2))
+                    isCorrect = True
                 else:
-                    if (key == " "):
-                        stdscr.addstr(y, x + i, testText[i], curses.color_pair(3))
-                    else:    
-                        stdscr.addstr(y, x + i, answer[i], curses.color_pair(3))
+                    stdscr.addstr(y, x + i, testText[i], curses.color_pair(3))
+                    isCorrect = False
 
             charCounter += 1
 
@@ -74,7 +88,7 @@ def end_screen(stdscr):
 def main(stdscr):
     curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
     curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
-    curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK)
+    curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_RED)
 
     start_screen(stdscr)
     test_screen(stdscr)
