@@ -9,6 +9,21 @@ def middle(stdscr, string):
 
     return x, y
 
+def prepare_text(stdscr, string: str, numberOfWords: int):
+    height, width = stdscr.getmaxyx()
+    stringSplit = string.split(" ")
+    stringTrimmed = stringSplit[:numberOfWords]
+    stringJoined = " ".join(stringTrimmed)
+    numberOfLines = 1
+
+    while ((len(stringJoined) / numberOfLines) > width):
+        numberOfLines += 1
+    
+    if (numberOfLines > 1):
+        lengthOfLine = len(stringJoined) // numberOfLines
+
+    return stringJoined
+
 def start_screen(stdscr):
     startMessage = "Press any button to start"
     x, y = middle(stdscr, startMessage)
@@ -23,7 +38,9 @@ def test_screen(stdscr):
 
     try:
         file = open("test-texts.txt", "r")
-        testText = file.read(width // 2)
+        numberOfWords = 4
+        loadedText = file.read()
+        testText = prepare_text(stdscr, loadedText, numberOfWords)
     except:
         testText = "hello world"
     answer = []
@@ -88,7 +105,7 @@ def end_screen(stdscr):
 def main(stdscr):
     curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
     curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
-    curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_RED)
+    curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK)
 
     start_screen(stdscr)
     test_screen(stdscr)
