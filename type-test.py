@@ -13,16 +13,22 @@ def prepare_text(stdscr, string: str, numberOfWords: int):
     height, width = stdscr.getmaxyx()
     stringSplit = string.split(" ")
     stringTrimmed = stringSplit[:numberOfWords]
-    stringJoined = " ".join(stringTrimmed)
-    numberOfLines = 1
+    #stringJoined = " ".join(stringTrimmed)
 
-    while ((len(stringJoined) / numberOfLines) > width):
-        numberOfLines += 1
-    
-    if (numberOfLines > 1):
-        lengthOfLine = len(stringJoined) // numberOfLines
+    length = 0
+    line = []
+    finalString = []
 
-    return stringJoined
+    for word in stringSplit:
+        length += len(word)
+        if (length < (width - 1)):
+            line.append(word)
+        else:
+            finalString.append(" ".join(line))
+            line = []
+            length = 0
+
+    return finalString
 
 def start_screen(stdscr):
     startMessage = "Press any button to start"
@@ -41,6 +47,7 @@ def test_screen(stdscr):
         numberOfWords = 4
         loadedText = file.read()
         testText = prepare_text(stdscr, loadedText, numberOfWords)
+        testText = testText[0]
     except:
         testText = "hello world"
     answer = []
