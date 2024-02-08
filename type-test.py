@@ -37,19 +37,20 @@ def test_screen(stdscr, width, height):
     stdscr.refresh()
 
     words = 0
-    isCorrect = False
+    correct = 0
+    wordList = [[]]
     charCounter = 0
     while True:
         if (charCounter == len(testText)):
             break
 
         # show number of words
-        stdscr.addstr(0, 0, f"words: {words}")
+        stdscr.addstr(0, 0, f"words: {correct}")
         stdscr.addstr(1, 0, str(x))
         stdscr.addstr(2, 0, str(y))
         stdscr.addstr(3, 0, str(width))
         stdscr.addstr(4, 0, str(charCounter))
-        #stdscr.move(y, x)
+        stdscr.move(y, x)
 
         # wait for user to press a  key
         key = stdscr.getkey()
@@ -68,8 +69,12 @@ def test_screen(stdscr, width, height):
 
             stdscr.addstr(y, x, testText[charCounter], curses.color_pair(1))
             answer.pop()
+            wordList[words].pop()
 
-            if (testText[charCounter] == " "):
+            if testText[charCounter] == " ":
+                if wordList[words].count(False) == 0:
+                    correct -= 1
+                wordList.pop()
                 words -= 1
 
         else:
@@ -77,25 +82,28 @@ def test_screen(stdscr, width, height):
             if (ord(key) == 27):
                 break
 
-            if ((key == " ") & isCorrect):
+            if ((key == " ") & (testText[charCounter] == " ")):
+                if wordList[words].count(False) == 0:
+                    correct += 1
+                wordList.append([])
                 words += 1
+            
+            charCounter += 1
 
+            answer.append(key)
+
+            for i in range(charCounter // (width + 1) * width, charCounter):
+                if (answer[i] == testText[i]):
+                    stdscr.addstr(y, i % width, testText[i], curses.color_pair(2))
+                    wordList[words].append(True)
+                else:
+                    stdscr.addstr(y, i % width, testText[i], curses.color_pair(3))
+                    wordList[words].append(False)
             if x == width - 1:
                 y +=1
                 x = 0
             else:
                 x += 1
-            charCounter += 1
-
-            answer.append(key)
-
-            for i in range((len(answer) // width) * width, len(answer)):
-                if (answer[i] == testText[i]):
-                    stdscr.addstr(y, i % width, testText[i], curses.color_pair(2))
-                    isCorrect = True
-                else:
-                    stdscr.addstr(y, i % width, testText[i], curses.color_pair(3))
-                    isCorrect = False
 
     end_screen(stdscr, width, height)
 
