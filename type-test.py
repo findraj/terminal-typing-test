@@ -1,8 +1,11 @@
 import curses
+import time
+import random
 
-def prepare_text(stdscr, width, height, string: str, numberOfWords: int):
-    stringSplit = string.split(" ")
-    stringTrimmed = stringSplit[:numberOfWords]
+def prepare_text(stdscr, string: str, numberOfWords: int):
+    stringSplit = string.split("\n")
+    firstWord = random.randrange(0, len(stringSplit) - numberOfWords)
+    stringTrimmed = stringSplit[firstWord:firstWord + numberOfWords]
     stringJoined = " ".join(stringTrimmed)
 
     return stringJoined
@@ -20,10 +23,9 @@ def start_screen(stdscr, width, height):
 def test_screen(stdscr, width, height):
     try:
         file = open("test-texts.txt", "r")
-        numberOfWords = 20
+        numberOfWords = 100
         loadedText = file.read()
-        #testText = prepare_text(stdscr, width, height, loadedText, numberOfWords)
-        testText = loadedText
+        testText = prepare_text(stdscr, loadedText, numberOfWords)
     except:
         testText = "hello world"
     answer = []
@@ -40,20 +42,25 @@ def test_screen(stdscr, width, height):
     correct = 0
     wordList = [[]]
     charCounter = 0
+    startTime = time.time()
+    elapsedTime = 0
+    stdscr.nodelay(True)
+
     while True:
-        if (charCounter == len(testText)):
+        if (elapsedTime == 30):
             break
 
+        elapsedTime = round(time.time() - startTime)
+        stdscr.addstr(0, 0, f"{30 - elapsedTime}")
+        wpm = (correct * 60) // max(elapsedTime, 1)
         # show number of words
-        stdscr.addstr(0, 0, f"words: {correct}")
-        stdscr.addstr(1, 0, str(x))
-        stdscr.addstr(2, 0, str(y))
-        stdscr.addstr(3, 0, str(width))
-        stdscr.addstr(4, 0, str(charCounter))
+        stdscr.addstr(1, 0, f"WPM: {wpm}")
         stdscr.move(y, x)
 
-        # wait for user to press a  key
-        key = stdscr.getkey()
+        try:
+            key = stdscr.getkey()
+        except:
+            continue
 
         # check if the presses key is Backspace
         if key in ("KEY_BACKSPACE", '\b', "\x7f"):
@@ -69,36 +76,43 @@ def test_screen(stdscr, width, height):
 
             stdscr.addstr(y, x, testText[charCounter], curses.color_pair(1))
             answer.pop()
-            wordList[words].pop()
 
             if testText[charCounter] == " ":
+                words -= 1
                 if wordList[words].count(False) == 0:
                     correct -= 1
                 wordList.pop()
-                words -= 1
+            else:
+                wordList[words].pop()
 
         else:
             # if the key Esc is pressed end the test
             if (ord(key) == 27):
                 break
 
-            if ((key == " ") & (testText[charCounter] == " ")):
+            if testText[charCounter] == " ":
                 if wordList[words].count(False) == 0:
                     correct += 1
                 wordList.append([])
                 words += 1
-            
-            charCounter += 1
 
             answer.append(key)
+
+            if answer[charCounter] == testText[charCounter]:
+                wordList[words].append(True)
+
+            else:
+                wordList[words].append(False)
+
+            charCounter += 1
 
             for i in range(charCounter // (width + 1) * width, charCounter):
                 if (answer[i] == testText[i]):
                     stdscr.addstr(y, i % width, testText[i], curses.color_pair(2))
-                    wordList[words].append(True)
+                
                 else:
                     stdscr.addstr(y, i % width, testText[i], curses.color_pair(3))
-                    wordList[words].append(False)
+                    
             if x == width - 1:
                 y +=1
                 x = 0
@@ -108,12 +122,14 @@ def test_screen(stdscr, width, height):
     end_screen(stdscr, width, height)
 
 def end_screen(stdscr, width, height):
+    stdscr.nodelay(False)
     endMessage = "Press Enter to restart / Press any other key to end"
     x = (width - len(endMessage)) // 2
     y = height // 2
 
     stdscr.addstr(y  + y // 2, x, endMessage)
     stdscr.refresh()
+    time.sleep(2)
     key = stdscr.getkey()
     if key == "\n":
         test_screen(stdscr)
