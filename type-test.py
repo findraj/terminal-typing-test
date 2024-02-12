@@ -3,6 +3,13 @@ import time
 import random
 
 def prepare_text(stdscr, string: str, numberOfWords: int):
+    """
+    Function to prepare text for testing
+
+    string -- string containing raw text\n
+    numberOfWords -- number of words in returning string\n
+    return -- prepared string
+    """
     stringSplit = string.split("\n")
     firstWord = random.randrange(0, len(stringSplit) - numberOfWords)
     stringTrimmed = stringSplit[firstWord:firstWord + numberOfWords]
@@ -11,7 +18,14 @@ def prepare_text(stdscr, string: str, numberOfWords: int):
     return stringJoined
 
 def start_screen(stdscr, width, height):
+    """
+    Function handling start screen.
+
+    width -- width of the screen\n
+    height -- height of the screen
+    """
     startMessage = "Press any button to start"
+    # calculating values to place a string
     x = (width - len(startMessage)) // 2
     y = height // 2
 
@@ -21,15 +35,25 @@ def start_screen(stdscr, width, height):
     stdscr.getkey()
 
 def test_screen(stdscr, width, height):
+    """
+    Function handling the testing.
+
+    width -- width of the screen\n
+    height -- height of the screen
+    """
+    # try to open file and load text from file
     try:
         file = open("test-texts.txt", "r")
+        # number of words in the test
         numberOfWords = 100
         loadedText = file.read()
         testText = prepare_text(stdscr, loadedText, numberOfWords)
     except:
         testText = "hello world"
+    # list where the answer will be stored
     answer = []
 
+    # positions of the text
     x = 0
     y = (height - (len(testText) // width)) // 2
 
@@ -38,7 +62,7 @@ def test_screen(stdscr, width, height):
     stdscr.move(y, x)
     stdscr.refresh()
 
-    words = 0
+    wordIndex = 0
     correct = 0
     wordList = [[]]
     charCounter = 0
@@ -78,12 +102,12 @@ def test_screen(stdscr, width, height):
             answer.pop()
 
             if testText[charCounter] == " ":
-                words -= 1
-                if wordList[words].count(False) == 0:
+                wordIndex -= 1
+                if wordList[wordIndex].count(False) == 0:
                     correct -= 1
                 wordList.pop()
             else:
-                wordList[words].pop()
+                wordList[wordIndex].pop()
 
         else:
             # if the key Esc is pressed end the test
@@ -91,18 +115,18 @@ def test_screen(stdscr, width, height):
                 break
 
             if testText[charCounter] == " ":
-                if wordList[words].count(False) == 0:
+                if wordList[wordIndex].count(False) == 0:
                     correct += 1
                 wordList.append([])
-                words += 1
+                wordIndex += 1
 
             answer.append(key)
 
             if answer[charCounter] == testText[charCounter]:
-                wordList[words].append(True)
+                wordList[wordIndex].append(True)
 
             else:
-                wordList[words].append(False)
+                wordList[wordIndex].append(False)
 
             charCounter += 1
 
